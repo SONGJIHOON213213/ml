@@ -1,15 +1,17 @@
 import numpy as np
 from tensorflow.keras.layers import Dense
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_iris,load_digits
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold,cross_val_score
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV,RandomizedSearchCV
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import GridSearchCV,RandomizedSearchCV,HalvingGridSearchCV
 import time 
 import pandas as pd
 #1.데이터
-x , y = load_breast_cancer(return_X_y=True)
+# x , y = load_iris(return_X_y=True)
+x , y = load_iris(return_X_y=True)
 
 x_train,x_test,y_train,y_test = train_test_split(
     x, y, shuffle=True, random_state=337, test_size=0.2, stratify=y)
@@ -24,13 +26,14 @@ parameters = [
     {'C':[0.1, 1], 'gamma':[1, 10]}
 ]
 #2.모델
-model = RandomizedSearchCV(SVC(),parameters,
+# model = GridSearchCV(SCV())
+model = HalvingGridSearchCV(SVC(),parameters,
                      cv=5,
-                     n_iter=10,
+                    #  n_iter=10,
                      verbose=1,
                      refit=True,
-                     n_jobs=-1)
-
+                     n_jobs=-1
+                    ,factor=10)
 #3.컴파일,훈련
 start_time =time.time()
 model.fit(x_train,y_train)
@@ -53,11 +56,3 @@ print('ACC 최적튠:',accuracy_score(y_test,y_pred_best))
 print("걸린시간:",round(end_time - start_time,2),'초')
 
 #######################################################
-#컬럼이 하나 또는 한개의리스트 벡터형태로고한다.
-print(pd.DataFrame(model.cv_results_).sort_values('rank_test_score', ascending=True))#컬럼이 하나 또는 한개의리스트 벡터형태로고한다.
-print(pd.DataFrame(model.cv_results_).columns)#컬럼이 하나 또는 한개의리스트 벡터형태로고한다.
-
-
-path = 'c:/temp/'
-pd.DataFrame(model.cv_results_).sort_values('rank_test_score', ascending=True)\
-    .to_csv(path + 'm10_RandomSearch1.csv' )
