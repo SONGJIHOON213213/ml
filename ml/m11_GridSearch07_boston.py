@@ -1,11 +1,11 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_boston
 from sklearn.metrics import accuracy_score
 import time
-import pandas as pd
+
 # load the data
-X, y = load_breast_cancer(return_X_y=True)
+X, y = load_boston(return_X_y=True)
 
 # split the data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, random_state=337, test_size=0.2, stratify=y)
