@@ -12,6 +12,7 @@ x, y = iris.data, iris.target
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, shuffle=True, random_state=123, test_size=0.2,stratify=y)
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=337)#알고리즘
+# kfold = Kfold(n_splits=5, shuffle=True, random_state=337)#알고리즘
 
 # 2. 모델
 model = RandomForestClassifier()

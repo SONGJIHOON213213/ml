@@ -46,7 +46,7 @@ for data, data_name in zip(data_list, data_name_list):
                     best_acc = mean_acc
 
             except ValueError:
-                print(f"{model_name} 쵝오의모델은 {data_name} 데이터값 {scaler.__class__.__name__} scaler")
+                print(f"{model_name} 쵝오의모델은 {data_name} {scaler.__class__.__name__} scaler")
                 continue  # skip the rest of the loop if the model is not compatible with the dataset and scaler
 
-        print(f"with {scaler.__class__.__name__} 쵝오의모델은 {data_name} 데이터값 {best_model.__class__.__name__}, accuracy: {round(best_acc, 3)}")
+        print(f"with {scaler.__class__.__name__} 쵝오의모델은 {data_name} {best_model.__class__.__name__}, accuracy: {round(best_acc, 3)}")
