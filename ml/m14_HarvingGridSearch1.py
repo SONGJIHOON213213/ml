@@ -19,16 +19,15 @@ x_train,x_test,y_train,y_test = train_test_split(
 n_split = 3
 kfold = KFold(n_splits=n_split,shuffle=True,random_state=337)
 
-parameter = [
-    {'n_estimators':[100, 200], 'max_depth':[6,8,10], 'min_samples_leaf':[1,10]}, 
-    {'max_depth':[6,8,10,12], 'min_samples_leaf':[3,5,7,10]},
-    {'min_samples_leaf':[3,5,7,10], 'min_samples_split':[2,3,5,10]},
-    {'min_samples_split':[2,3,5,10]},
-    {'n_jobs':[-1, 2, 4], 'min_samples_split':[2,3,5,10]}
+parameters = [
+    {'C':[1,10,100,1000], 'kernel':['linear'], 'degree':[3,4,5]},
+    {'C':[1,10,100], 'kernel':['rbf', 'linear'], 'gamma':[0.001, 0.0001]},
+    {'C':[1,10,100,1000], 'kernel':['sigmoid'], 'gamma':[0.01, 0.001, 0.0001], 'degree':[3, 4]},
+    {'C':[0.1, 1], 'gamma':[1, 10]}
 ]
 #2.모델
 # model = GridSearchCV(SCV())
-model = HalvingGridSearchCV(SVC(),parameter,
+model = HalvingGridSearchCV(SVC(),parameters,
                      cv=5,
                     #  n_iter=10,
                      verbose=1,
