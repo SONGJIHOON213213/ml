@@ -47,11 +47,11 @@ dnn_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['a
 # 은 4차원 shape을 가져함. 따라서, fit() 메서드에 입력하기 위해 데이터를 4차원으로 reshape해줘야댐.
 
 #3.훈련
-cnn_model.fit(x_train.reshape(-1, 28, 28, 1), y_train, epochs=500, batch_size=32, validation_data=(x_test.reshape(-1, 28, 28, 1), y_test))
+cnn_model.fit(x_train.reshape(-1, 28, 28, 1), y_train, epochs=10, batch_size=32, validation_data=(x_test.reshape(-1, 28, 28, 1), y_test))
 cnn_loss, cnn_acc = cnn_model.evaluate(x_test.reshape(-1, 28, 28, 1), y_test)
 
 
-dnn_model.fit(x_train, y_train, epochs=500, batch_size=32, validation_data=(x_test, y_test))
+dnn_model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test))
 dnn_loss, dnn_acc = dnn_model.evaluate(x_test, y_test)
 
 #4.평가,예측
@@ -63,6 +63,15 @@ print('CNN 값: ', cnn_acc)
 print('DNN 값: ', dnn_acc)
 
 #요약
+# 첫째, 차원 축소를 통해 데이터의 크기를 줄일 수 있습니다. 데이터가 크고 복잡한 경우, 
+# 처리 시간이 매우 오래 걸릴 수 있습니다. 따라서, 차원 축소를 통해 데이터의 크기를 줄이면, 연산 속도를 높일 수 있습니다.
+
+# 둘째, 차원 축소를 통해 데이터의 특징을 추출하고, 중요한 정보를 유지할 수 있습니다. 
+# 예를 들어, 이미지 데이터의 경우, 각 픽셀은 하나의 특징입니다. 
+# 하지만, 모든 픽셀을 모두 사용해야 할 필요는 없습니다. 
+
+# 차원 축소를 통해 픽셀에서 중요한 정보를 추출할 수 있습니다. 이러한 방식으로, 
+# 차원 축소는 데이터의 특징을 추출하고, 중요한 정보를 유지하는 데 도움을 줄 수 있습니다.
 #우선 PCA를 통해 차원 축소를 수행한 후에, 그 결과를 이용해 CNN 모델과 
 # DNN 모델을 각각 훈련시키는 것입니다. 이를 통해 차원 축소로 인한 성능 저하를 최소화하면서도 모델의 복잡도를 줄임
 
