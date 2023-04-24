@@ -28,4 +28,4 @@ model.fit(x_train,y_train)
 
 #4.평가,예측
 result = model.score(x_test,y_test)
-print("결과: ",result)
+print("결과: ",result) 

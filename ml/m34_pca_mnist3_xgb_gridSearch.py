@@ -8,11 +8,10 @@ from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 from xgboost import XGBClassifier
 from sklearn.decomposition import PCA
-SEED = 42
 
 def run_model(x, y, name):
-    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=SEED, stratify=y)
-    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=1234, stratify=y)
+    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=1234)
 
     parameters=[
         {'n_estimators': [100, 200, 300], 'learning_rate': [0.1, 0.3, 0.001, 0.01], 'max_depth': [4, 5, 6]},
@@ -24,7 +23,7 @@ def run_model(x, y, name):
     model.fit(x_train, y_train)
 
     print(f'====================================={name}=====================================')
-    print(f'최적의 매개변수 : {model.best_params_}\n최적의 파라미터 : {model.best_estimator_}\nbest score : {model.best_score_}\nmodel score : {model.score(x_test,y_test)}')
+    # print(f'최적의 매개변수 : {model.best_params_}\n최적의 파라미터 : {model.best_estimator_}\nbest score : {model.best_score_}\nmodel score : {model.score(x_test,y_test)}')
     print(f'acc : {accuracy_score(y_test,model.predict(x_test))}')
     print(f'best acc : {accuracy_score(y_test,model.best_estimator_.predict(x_test))}')
  
@@ -39,4 +38,5 @@ x = datasets.drop(datasets.columns[-1], axis=1)
 y = datasets.iloc[:, -1]
 pca = PCA(n_components=x.shape[1]//2)
 x_pca = pca.fit_transform(x)
-run_model(x_pca, y, 'dacon_diabete') 
+run_model(x_pca, y, 'dacon_diabete')  
+
