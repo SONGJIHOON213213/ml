@@ -38,5 +38,20 @@ x = datasets.drop(datasets.columns[-1], axis=1)
 y = datasets.iloc[:, -1]
 pca = PCA(n_components=x.shape[1]//2)
 x_pca = pca.fit_transform(x)
-run_model(x_pca, y, 'dacon_diabete')  
+run_model(x_pca, y, 'dacon_diabete')   
+
+
+# Fitting 5 folds for each of 5 candidates, totalling 25 fits
+# =====================================load_iris=====================================
+# acc : 1.0
+# best acc : 1.0
+# Fitting 5 folds for each of 5 candidates, totalling 25 fits
+# =====================================load_breast_cancer=====================================
+# acc : 0.956140350877193
+# best acc : 0.956140350877193
+# Fitting 5 folds for each of 5 candidates, totalling 25 fits
+# =====================================load_wine=====================================
+# acc : 1.0
+# best acc : 1.0
+# Fitting 5 folds for each of 5 candidates, totalling 25 fits
 
