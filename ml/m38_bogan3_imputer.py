@@ -10,7 +10,7 @@ data = pd.DataFrame([[2,np.nan,6,8,10],
 data.columns = ['x1','x2','x3','x4']
 print(data)
 # from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute  import SimpleImputer,KNNImputer, # 결측치 책임 돌리기
+from sklearn.impute  import SimpleImputer,KNNImputer # 결측치 책임 돌리기
 from sklearn.impute  import IterativeImputer
 from xgboost import XGBClassifier, XGBRegressor
  # 결측치 책임 돌리기
