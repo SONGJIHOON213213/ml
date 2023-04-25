@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
-from sklearn.datasets import load_iris,load_diabetes
+from sklearn.datasets import fetch_covtype
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
-import random
-# 1. 데이터
+from sklearn.ensemble import RandomForestRegressor
+
+#1.데이터
 # 1.1 경로, 가져오기
 path = 'c:/study/_data/ddarung/'
 
@@ -27,30 +28,23 @@ print(train_csv.isnull().sum())
 x = train_csv.drop(['count'], axis=1)
 y = train_csv['count']
 
-def run_model(x,y,label:str=''):
-    x_train,x_test,y_train,y_test=train_test_split(x,y,train_size=0.8,random_state=1234,shuffle=True)
-    from sklearn.ensemble import RandomForestRegressor
-    model=RandomForestRegressor(n_estimators=200,max_depth=20)
-    model.fit(x_train,y_train)
-    if label!='':
-        print(f'{label} 결과')
-    print(f'model score : {model.score(x_test,y_test)}')
-    
+def model(x, y, label=''):
+    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=1234, shuffle=True)
+    model = RandomForestRegressor(n_estimators=200, max_depth=20)
+    model.fit(x_train, y_train)
+    if label:
+        print(label + ' 결과')
+    print('model score: ' + str(model.score(x_test, y_test)))
 
-dataset=load_diabetes()
+# run the model with the original dataset
+model(x, y, 'PCA 전')
 
-x=dataset['data']
-y=dataset['target']
-
-run_model(x,y,'PCA이전')
-
+# apply PCA and run the model again
 pca = PCA(n_components=7)
-print(x.shape)
-x=pca.fit_transform(x)
+x = pca.fit_transform(x)
 print(x.shape)
 
-run_model(x,y,'PCA이후') 
-
+model(x, y, 'PCA 후')
 # PCA이전 결과
 # model score : 0.40397878433095846
 # (442, 10)

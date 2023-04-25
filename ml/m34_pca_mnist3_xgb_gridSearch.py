@@ -1,10 +1,9 @@
-from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_digits, fetch_covtype
 from sklearn.model_selection import train_test_split, RandomizedSearchCV, StratifiedKFold
 from sklearn.decomposition import PCA
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
 import pandas as pd
-
+from tensorflow.keras.datasets import mnist
 # define a function to run the model and print the results
 def run_model(x, y, name):
     x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=1234, stratify=y)
@@ -23,7 +22,7 @@ def run_model(x, y, name):
     print('Accuracy score: ' + str(accuracy_score(y_test, model.best_estimator_.predict(x_test))))
  
 # load and run the model for several datasets
-for data_loader in [load_iris, load_breast_cancer, load_wine, load_digits, fetch_covtype]:
+for data_loader in [mnist]:
     x, y = data_loader(return_X_y=True)
     pca = PCA(n_components=x.shape[1] // 2)
     x = pca.fit_transform(x)

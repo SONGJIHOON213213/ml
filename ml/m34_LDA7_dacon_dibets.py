@@ -1,10 +1,18 @@
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_wine
+import numpy as np
+import pandas as pd
 from sklearn.datasets import load_iris,load_diabetes
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import random
+
 # 1.데이터
 # 1.1 경로, 가져오기
 path = 'c:/study/_data/dacon_diabets/'
@@ -28,27 +36,19 @@ y = train_csv['Outcome']
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.7, random_state=1234, shuffle=True)
 
-def model(x, y, label=''):
-    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=1234, shuffle=True)
-    model = RandomForestRegressor(n_estimators=200, max_depth=20)
-    model.fit(x_train, y_train)
-    if label:
-        print(label + ' 결과')
-    print('model score: ' + str(model.score(x_test, y_test)))
+lda = LinearDiscriminantAnalysis(n_components=1)
+lda.fit_transform(x, y)
+print(x.shape) 
 
-# run the model with the original dataset
-model(x, y, 'PCA 전')
+pca = PCA(n_components=2)
+x_pca = pca.fit_transform(x)
 
-# apply PCA and run the model again
-pca = PCA(n_components=7)
-x = pca.fit_transform(x)
-print(x.shape)
+print(f"PCA 후 데이터 형태: {x_pca.shape}")
 
-model(x, y, 'PCA 후')
+lda = LinearDiscriminantAnalysis(n_components=1)
+x_lda = lda.fit_transform(x_pca, y)
 
-# PCA이전 결과
-# model score : 0.4266586810686236
-# (442, 10)
-# (442, 7)
-# PCA이후 결과
-# model score : 0.41876123994258885
+print(f"LDA 후 데이터 형태: {x_lda.shape}")  
+
+# PCA 후 데이터 형태: (652, 2)
+# LDA 후 데이터 형태: (652, 1)
