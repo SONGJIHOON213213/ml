@@ -1,38 +1,34 @@
-import random
-import os
 import numpy as np
 import pandas as pd
-import gc
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, make_scorer
 from xgboost import XGBClassifier
-
+# Load data
 train = pd.read_csv('c:/study/_data/dacon_air/train.csv')
 test = pd.read_csv('c:/study/_data/dacon_air/test.csv')
 sample_submission = pd.read_csv('c:/study/_data/dacon_air/sample_submission.csv', index_col=0)
-# Replace variables with missing values except for the label (Delay) with the most frequent values of the training data
-# 컬럼의 누락된 값은 훈련 데이터에서 해당 컬럼의 최빈값으로 대체됩니다.
-NaN_col = ['Origin_State','Destination_State','Airline','Estimated_Departure_Time', 'Estimated_Arrival_Time','Carrier_Code(IATA)','Carrier_ID(DOT)']
 
-for col in NaN_col:
+# Replace variables with missing values except for the label (Delay) with the most frequent values of the training data
+NaN = ['Origin_State', 'Destination_State', 'Airline', 'Estimated_Departure_Time', 'Estimated_Arrival_Time', 'Carrier_Code(IATA)', 'Carrier_ID(DOT)']
+
+for col in NaN:
     mode = train[col].mode()[0]
     train[col] = train[col].fillna(mode)
-    
+
     if col in test.columns:
         test[col] = test[col].fillna(mode)
 print('Done.')
 
 # Quantify qualitative variables
-# 정성적 변수는 LabelEncoder를 사용하여 숫자로 인코딩됩니다.
 qual_col = ['Origin_Airport', 'Origin_State', 'Destination_Airport', 'Destination_State', 'Airline', 'Carrier_Code(IATA)', 'Tail_Number']
 
 for i in qual_col:
     le = LabelEncoder()
     le = le.fit(train[i])
     train[i] = le.transform(train[i])
-    
+
     for label in np.unique(test[i]):
         if label not in le.classes_:
             le.classes_ = np.append(le.classes_, label)
@@ -40,25 +36,22 @@ for i in qual_col:
 print('Done.')
 
 # Remove unlabeled data
-# 훈련 세트에서 레이블이 지정되지 않은 데이터가 제거되고 숫자 레이블 열이 추가됩니다.
 train = train.dropna()
 
-column_number = {}
+column4 = {}
 for i, column in enumerate(sample_submission.columns):
-    column_number[column] = i
-    
+    column4[column] = i
+
 def to_number(x, dic):
     return dic[x]
 
-train.loc[:, 'Delay_num'] = train['Delay'].apply(lambda x: to_number(x, column_number))
+train.loc[:, 'Delay_num'] = train['Delay'].apply(lambda x: to_number(x, column4))
 print('Done.')
 
 train_x = train.drop(columns=['ID', 'Delay', 'Delay_num'])
 train_y = train['Delay_num']
 test_x = test.drop(columns=['ID'])
 
-# 교육 데이터는 교육 및 검증 세트로 분할되고 수치 기능은 StandardScaler를 사용하여 정규화됩니다.
-# 모델은 GridSearchCV와 5겹 교차 검증을 사용하여 수행되는 하이퍼파라미터 튜닝과 함께 XGBClassifier를 사용하여 훈련됩니다.
 # Split the training dataset into a training set and a validation set
 train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=0.2, random_state=42)
 
@@ -75,9 +68,9 @@ cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 model = XGBClassifier(random_state=42)
 
 param_grid = {
-    'learning_rate': [0.2, 0.5],
-    'max_depth': [1, 3],
-    'n_estimators': [100, 400],
+    'learning_rate': [0.8, 0.5],
+    'max_depth': [2, 6],
+    'n_estimators': [100, 900],
 }
 
 grid = GridSearchCV(model,
@@ -95,23 +88,8 @@ best_model = grid.best_estimator_
 val_y_pred = best_model.predict(val_x)
 acc = accuracy_score(val_y, val_y_pred)
 f1 = f1_score(val_y, val_y_pred, average='weighted')
+pre = precision_score(val_y, val_y_pred, average='weighted')
+recall = recall_score(val_y, val_y_pred, average='weighted')
 
-print('Accuracy: ',acc)
-print('F1 Score: ', f1)
-
-# 하이퍼파라미터 튜닝 결과를 바탕으로 최적의 모델을 선택하고 테스트 세트의 목표 변수를 예측하는 데 사용합니다.
-# Model prediction
-y_pred = best_model.predict_proba(test_x)
-submission = pd.DataFrame(data=y_pred, columns=sample_submission.columns, index=sample_submission.index)
-submission.to_csv('c:/study/_data/dacon_air/01submission.csv')
- 
- 
-# Fitting 5 folds for each of 8 candidates, totalling 40 fits
-# Accuracy: 0.8216309484127762
-# F1 Score: 0.7430785590684486 
-# Precision: 0.7751249969610362
-# Recall: 0.8216309484127762   
-# 1.1435043853
-
-# Accuracy:  0.8027097507892003
-# F1 Score:  0.7592977645610804
+print('Accuracy_score:',acc)
+print('F1 Score:f1',f1)
