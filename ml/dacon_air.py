@@ -93,3 +93,7 @@ recall = recall_score(val_y, val_y_pred, average='weighted')
 
 print('Accuracy_score:',acc)
 print('F1 Score:f1',f1)
+
+y_pred = best_model.predict_proba(test_x)
+submission = pd.DataFrame(data=y_pred, columns=sample_submission.columns, index=sample_submission.index)
+submission.to_csv('c:/study/_data/dacon_air/d23submission.csv')
