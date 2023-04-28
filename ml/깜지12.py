@@ -1,15 +1,89 @@
+import numpy as np
 import pandas as pd
+import os
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM
+from sklearn.preprocessing import MinMaxScaler
 
-# PM, AWS 데이터 로드
-pm_data = pd.read_csv('c:/study/_data/ggamji/META/pmmap.csv')
-aws_data = pd.read_csv('c:/study/_data/ggamji/META/awsmap.csv')
+#1 데이터
+path1 = 'c:/study/_data/ai_factory/TRAIN/'
+path2 = 'c:/study/_data/ai_factory/TRAIN_AWS/'
+path3= 'c:/study/_data/ai_factory/TEST_INPUT/'
+path4 = 'c:/study/_data/ai_factory/TEST_AWS/'
+save_path = 'c:/study/_save/ai_factory/'
 
-# TRAIN 폴더 안의 pm 데이터 불러오기
-path = 'c:/study/_data/ggamji/META/'
-path2 = 'c:/study/_data/ggamji/Train/'
+paths = [path1, path2, path3, path4]
 
-train = pd.DataFrame()
-for i in range(1, 11):
-    file_name = f'train_{i}.csv'
-    df = pd.read_csv(path2 + file_name, parse_dates=['일시'])
-    train = pd.concat([train, df])
+dataframes = []
+
+for path in paths:
+    csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+    for file in csv_files:
+        file_path = os.path.join(path, file)
+        df = pd.read_csv(file_path)
+        dataframes.append(df)
+
+# 데이터프레임 연결
+all_data = pd.concat(dataframes, axis=0)
+
+# 필요한 열만 선택
+df = all_data[['PM2.5']]
+
+# 데이터 전처리 및 정규화
+scaler = MinMaxScaler()
+df['PM2.5'] = scaler.fit_transform(df[['PM2.5']])
+
+# 인덱스 재설정
+df.reset_index(drop=True, inplace=True)
+
+# 시계열 데이터를 X와 y로 분할
+sequence_length = 72  # 3일 분량의 데이터 (24시간 x 3일 = 72시간)
+
+X = []
+y = []
+
+for i in range(len(df) - sequence_length - 1):
+    X.append(df['PM2.5'][i:i + sequence_length].values)
+    y.append(df['PM2.5'][i + sequence_length])
+
+X = np.array(X)
+y = np.array(y)
+
+# 데이터를 학습 및 테스트 셋으로 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# LSTM 입력을 위해 3차원 데이터로 변환
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+# LSTM 모델 생성
+model = Sequential()
+model.add(LSTM(50, input_shape=(X_train.shape[1], 1), return_sequences=True))
+model.add(LSTM(50))
+model.add(Dense(1))
+
+model.compile(loss='mean_squared_error', optimizer='adam')
+
+# 모델 학습
+model.fit(X_train, y_train, epochs=1, batch_size=10000, validation_split=0.2, verbose=1)
+
+# 예측
+y_pred = model.predict(X_test)
+
+# 예측값을 원래 스케일로 변환
+y_test = scaler.inverse_transform(y_test.reshape(-1, 1))
+y_pred = scaler.inverse_transform(y_pred)
+
+print("예측 결과:")
+for i in range(5):
+    print(f"실제 PM2.5: {y_test[i][0]:.2f}, 예측 PM2.5: {y_pred[i][0]:.2f}")
+
+# 예측 결과를 데이터프레임으로 변환
+result_df = pd.DataFrame({'Actual_PM2.5': y_test.flatten(), 'Predicted_PM2.5': y_pred.flatten()})
+
+# 결과를 CSV 파일로 저장
+result_df.to_csv('pm25_predictions.csv', index=False)
+
+print("예측 결과가 'pm25_predictions.csv' 파일로 저장되었습니다.")
