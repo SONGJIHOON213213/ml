@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd 
-from sklearn.datasets import load_wine
+from sklearn.datasets import fetch_covtype
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score,f1_score
 from imblearn.over_sampling import SMOTE
 
-datasets = load_wine()
+datasets = fetch_covtype()
 x = datasets.data
 y = datasets['target']
 print(x.shape,y.shape) 
