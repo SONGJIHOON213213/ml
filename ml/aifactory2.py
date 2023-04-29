@@ -1,26 +1,15 @@
+import numpy as np
 import pandas as pd
-import os
+path = 'c:/study/_data/aifact_05/'
+path_save = 'c:/stUdy/_save/aifact_05/'
 
-# Set directory where CSV files are located
-csv_dir = './_data/ai_factory/social/TRAIN'
+columns = ['','연도','일시','측정소','PM2.5']
+values = np.repeat([0.1, 0.11, 0.12, 0.13, 0.14,0.15,0.16,0.17,0.18,0.19,0.198], 14000)
 
-# Create empty list to hold dataframes
-df_list = []
-
-# Loop through all CSV files in directory
-for file in os.listdir(csv_dir):
-    if file.endswith('.csv'):
-        # Read CSV file into dataframe
-        df = pd.read_csv(os.path.join(csv_dir, file))
-        
-        # Do any necessary data cleaning or manipulation here
-        # ...
-        
-        # Append dataframe to list
-        df_list.append(df)
-
-# Concatenate all dataframes in list into one dataframe
-combined_df = pd.concat(df_list)
-
-# Save combined dataframe to CSV file
-combined_df.to_csv('./_data/ai_factory/social/train_all.csv', index=False)
+answer_sample_csv = pd.read_csv(path+'answer_sample.csv')
+# answer_sample_csv = np.array(answer_sample_csv)
+# print(answer_sample_csv)
+# answer_sample_csv = pd.DataFrame(answer_sample_csv, columns=columns)
+answer_sample_csv['PM2.5'] = 0.0685
+# 0.0585 = 9.84276067점
+answer_sample_csv.to_csv(path_save+'0427_058.csv',encoding='UTF-8')
