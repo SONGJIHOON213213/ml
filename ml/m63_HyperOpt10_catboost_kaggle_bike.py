@@ -17,10 +17,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import BaggingClassifier
 import time
-import warnings
-warnings.filterwarnings('ignore')
-# *UserWarning: 'early_stopping_rounds' argument is deprecated and will be removed in a future release of LightGBM. 
-# Pass 'early_stopping()' callback via 'callbacks' argument instead.
 
 #1 데이터
 # 1.1 경로, 가져오기
@@ -43,8 +39,6 @@ train_csv = train_csv.dropna()
 x = train_csv.drop(['Outcome'], axis=1)
 y = train_csv['Outcome']
 
-
-# # 1.5 train, test 분리 과적합방지
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.7, random_state=1234, shuffle=True)
 # 1.3 결측치 처리
 num_cols = x_train.select_dtypes(include=np.number).columns
@@ -79,8 +73,8 @@ from hyperopt import hp
 from hyperopt import fmin, tpe, Trials, STATUS_OK
 
 search_space = {
-    'learning_rate' : hp.uniform('learning_rate', 0.01, 1),          #uniform(실수형태) : 정규분포형태에 따라서 제공하겠다 (->중심부(0.5부분)를 더 많이 제공하게 됨) =>> q값(범위값) 줄 필요 xx
-    'depth' : hp.quniform('depth',3, 16, 1),               #quniform(정수형태) /// 1단위이지만, 사실은 1.0 => int해줘야함/ 그래도 1단위이므로 round는 안해도됨
+    'learning_rate' : hp.uniform('learning_rate', 0.01, 1),        
+    'depth' : hp.quniform('depth',3, 16, 1),              
     'one_hot_max_size' : hp.quniform('one_hot_max_size',24, 64, 1),          
     'min_data_in_leaf' : hp.quniform('min_data_in_leaf', 10, 200, 2), 
     'bagging_temperature' : hp.uniform('bagging_temperature', 0.5, 1),
@@ -88,8 +82,7 @@ search_space = {
     'l2_leaf_reg' : hp.uniform('l2_leaf_reg', 0.01, 30)
 }
 
-
-#모델 정의 
+ 
 def cat_hamsu(search_space):
     params = {
         'iterations' : 10,
@@ -117,23 +110,23 @@ def cat_hamsu(search_space):
 
     return return_value
 
-trial_val = Trials()   #hist보기위해
+trial_val = Trials()   
 
 
 best = fmin(
-    fn= cat_hamsu,                            #함수
-    space= search_space,                        #파라미터
-    algo=tpe.suggest,                           #알고리즘 정의(디폴트) // 베이지안 최적화와의 차이점..
-    max_evals=50,                               #베이지안 최적화의 n_iter와 동일(훈련 10번)
-    trials=trial_val,                           #결과값 저장
-    rstate = np.random.default_rng(seed=10)    #random_state와 동일
+    fn= cat_hamsu,                            
+    space= search_space,                        
+    algo=tpe.suggest,                           
+    max_evals=50,                               
+    trials=trial_val,                           
+    rstate = np.random.default_rng(seed=10)   
 )
 
 
 print("best:", best)
 
 
-results = [aaa['loss'] for aaa in trial_val.results]   #trial_val.results의 값을 aaa반복해라 / aaa의 ['loss']만 반복해라 
+results = [aaa['loss'] for aaa in trial_val.results]   
 df = pd.DataFrame({
         'learning_rate' : trial_val.vals['learning_rate'],
         'depth' : trial_val.vals['depth'],
@@ -147,10 +140,9 @@ df = pd.DataFrame({
 
 print(df)
 
-### results칼럼에 최솟값이 있는 행을 출력 ###
+
 min_row = df.loc[df['results'] == df['results'].min()]
 print("최소 행",'\n' , min_row)
 
-### results칼럼에 최솟값이 있는 행에서 results만 출력 ###
 min_results = df.loc[df['results'] == df['results'].min(), 'results']
 print(min_results.values)  

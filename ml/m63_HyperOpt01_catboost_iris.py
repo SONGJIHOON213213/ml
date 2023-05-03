@@ -1,106 +1,107 @@
+import pandas as pd
 import numpy as np
-from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_digits
-from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, StandardScaler, RobustScaler
-from lightgbm import LGBMClassifier
-from xgboost import XGBClassifier
-from catboost import CatBoostClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.datasets import load_breast_cancer, load_diabetes, load_iris
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler, RobustScaler 
+from xgboost import XGBClassifier, XGBRegressor
+from lightgbm import LGBMRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor
 from bayes_opt import BayesianOptimization
-from hyperopt import hp, fmin, tpe
-from functools import partial
+from sklearn.metrics import r2_score, mean_squared_error, accuracy_score
+import time
 import warnings
 warnings.filterwarnings('ignore')
 
-#1 데이터
-data_list = {'iris' : load_iris,
-             'wine' : load_wine,
-             'digits' : load_digits,
-             'cancer' : load_breast_cancer}
+#1. 데이터 
+x, y = load_iris(return_X_y=True)
 
-scaler_list = {'MinMax' : MinMaxScaler(),
-               'Max' : MaxAbsScaler(),
-               'Standard' : StandardScaler(),
-               'Robust' : RobustScaler()}
+x_train, x_test, y_train, y_test = train_test_split(
+    x, y, random_state=337, train_size=0.8
+)
 
-for d in data_list:
-    x, y = data_list[d](return_X_y = True)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.7, shuffle = True, random_state = 1234)
-    for s in scaler_list:
-        scaler = scaler_list[s]
-        x_train = scaler.fit_transform(x_train)
-        x_test = scaler.transform(x_test)
-        if d == 'iris' or d == 'wine' or d == 'digits':
-            objective = 'multi:softmax'
-            eval_metric = 'mlogloss'
-            def xgb_function (xgb_hyper_params):
-                model = CatBoostClassifier(max_depth = int(xgb_hyper_params['max_depth']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      learning_rate  = xgb_hyper_params['learning_rate'],
-                                      n_estimators  = int(xgb_hyper_params['n_estimators']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      min_child_weight = xgb_hyper_params['min_child_weight'],
-                                      subsample = xgb_hyper_params['subsample'],
-                                      colsample_bytree = xgb_hyper_params['colsample_bytree'],
-                                      max_bin = int(xgb_hyper_params['max_bin']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      reg_lambda = xgb_hyper_params['reg_lambda'],
-                                      reg_alpha = xgb_hyper_params['reg_alpha'],
-                                      objective=objective,
-                                    # use_label_encoder=False,
-                                      random_state = 1234)
-                model.fit(x_train, y_train, eval_set = [(x_train, y_train), (x_test, y_test)], eval_metric = eval_metric, verbose = 0, early_stopping_rounds=50)
-                y_predict = model.predict(x_test)
-                acc =  accuracy_score(y_test, y_predict)
-                return -acc
-            xgb_hyper_params = {'max_depth' : hp.quniform('max_depth', 3, 16, 1),
-                                'learning_rate' : hp.uniform('learning_rate', 0.3, 0.7),
-                                'n_estimators' : hp.quniform('n_estimators', 100, 500, 1),
-                                'min_child_weight' : hp.quniform('min_child_weight', 1, 50, 1),
-                                'subsample' : hp.uniform('subsample', 0.5, 1),
-                                'colsample_bytree' : hp.uniform('colsample_bytree', 0.5, 1),
-                                'max_bin' : hp.quniform('max_bin', 10, 500, 1),
-                                'reg_lambda' : hp.uniform('reg_lambda', 0.001, 10),
-                                'reg_alpha' : hp.uniform('reg_alpha', 0.01, 50)}
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
 
-            xgb_objective = partial(xgb_function, x_train = x_train, y_train = y_train, x_test = x_test, y_test = y_test, objective = objective, eval_metric = eval_metric)
-            
-            best = fmin(fn = xgb_function, space = xgb_hyper_params, algo = tpe.suggest, max_evals = 60, rstate = np.random.default_rng(seed=1234))
-            
-            best_loss = xgb_function(best)
 
-            print(f'데이터: {d}, 스케일러 : {s}, 최소 점수 : {-best_loss}')
-        elif d == 'cancer':
-            objective = 'binary:logistic'
-            eval_metric = 'logloss'
-            def xgb_function (xgb_hyper_params):
-                model = CatBoostClassifier(max_depth = int(xgb_hyper_params['max_depth']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      learning_rate  = xgb_hyper_params['learning_rate'],
-                                      n_estimators  = int(xgb_hyper_params['n_estimators']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      min_child_weight = xgb_hyper_params['min_child_weight'],
-                                      subsample = xgb_hyper_params['subsample'],
-                                      colsample_bytree = xgb_hyper_params['colsample_bytree'],
-                                      max_bin = int(xgb_hyper_params['max_bin']), # 실수값 전달로 인해 에류 발생 정수값으로 변환해야한다.
-                                      reg_lambda = xgb_hyper_params['reg_lambda'],
-                                      reg_alpha = xgb_hyper_params['reg_alpha'],
-                                      objective=objective,
-                                    # use_label_encoder=False,
-                                      random_state = 1234)
-                model.fit(x_train, y_train, eval_set = [(x_train, y_train), (x_test, y_test)], eval_metric = eval_metric, verbose = 0, early_stopping_rounds=50)
-                y_predict = model.predict(x_test)
-                acc =  accuracy_score(y_test, y_predict)
-                return -acc
-            CBL_hyper_params = {'max_depth' : hp.quniform('max_depth', 3, 16, 1),
-                                   'learning_rate' : hp.uniform('learning_rate', 0.3, 0.7),
-                                   'n_estimators' : hp.quniform('n_estimators', 100, 500, 1),
-                                   'min_child_weight' : hp.quniform('min_child_weight', 1, 50, 1),
-                                   'subsample' : hp.uniform('subsample', 0.5, 1),
-                                   'colsample_bytree' : hp.uniform('colsample_bytree', 0.5, 1),
-                                   'max_bin' : hp.quniform('max_bin', 10, 500, 1),
-                                   'reg_lambda' : hp.uniform('reg_lambda', 0.001, 10),
-                                   'reg_alpha' : hp.uniform('reg_alpha', 0.01, 50)}
+#hyperopt----------------------------------------------------------#
+from hyperopt import hp
+from hyperopt import fmin, tpe, Trials, STATUS_OK
 
-            xgb_objective = partial(xgb_function, x_train = x_train, y_train = y_train, x_test = x_test, y_test = y_test, objective = objective, eval_metric = eval_metric)
-            
-            best = fmin(fn = xgb_function, space = xgb_hyper_params, algo = tpe.suggest, max_evals = 60, rstate = np.random.default_rng(seed=1234))
+search_space = {
+    'learning_rate' : hp.uniform('learning_rate', 0.01, 1),          
+    'depth' : hp.quniform('depth',3, 16, 1),               
+    'one_hot_max_size' : hp.quniform('one_hot_max_size',24, 64, 1),          
+    'min_data_in_leaf' : hp.quniform('min_data_in_leaf', 10, 200, 2), 
+    'bagging_temperature' : hp.uniform('bagging_temperature', 0.5, 1),
+    'random_strength' : hp.uniform('random_strength', 0.5, 1),         
+    'l2_leaf_reg' : hp.uniform('l2_leaf_reg', 0.01, 30)
+}
 
-            best_loss = xgb_function(best)
+#모델 정의 
+def cat_hamsu(search_space):
+    params = {
+        'iterations' : 10,
+        'learning_rate' : search_space['learning_rate'],
+        'depth' : int(search_space['depth']),
+        'l2_leaf_reg' : search_space['l2_leaf_reg'],
+        'bagging_temperature' : search_space['bagging_temperature'],
+        'random_strength' : search_space['random_strength'],
+        'one_hot_max_size' : int(search_space['one_hot_max_size']),
+        'min_data_in_leaf' : int(search_space['min_data_in_leaf']),
+        'task_type' : 'CPU',
+        'logging_level' : 'Silent',
+        
+    }
 
-            print(f'데이터: {d}, 스케일러 : {s}, 최소 점수 : {-best_loss}')
+    model = CatBoostClassifier(**params)
+    model.fit(x_train, y_train)
+            #   eval_set=[(x_train, y_train), (x_test, y_test)],
+            #   eval_metric='AUC',
+            #   verbose=0,
+            #   early_stopping_rounds=50
+            #   )
+    y_predict = model.predict(x_test)
+    return_value = -(accuracy_score(y_test, y_predict))
+
+    return return_value
+
+trial_val = Trials()   #hist보기위해
+
+
+best = fmin(
+    fn= cat_hamsu,                            
+    space= search_space,                        
+    algo=tpe.suggest,                           
+    max_evals=50,                               
+    trials=trial_val,                           
+    rstate = np.random.default_rng(seed=10)    
+)
+
+
+print("best:", best)
+
+
+results = [aaa['loss'] for aaa in trial_val.results]   
+df = pd.DataFrame({
+        'learning_rate' : trial_val.vals['learning_rate'],
+        'depth' : trial_val.vals['depth'],
+        'l2_leaf_reg' : trial_val.vals['l2_leaf_reg'],
+        'bagging_temperature' : trial_val.vals['bagging_temperature'],
+        'random_strength' : trial_val.vals['random_strength'],
+        'one_hot_max_size' : trial_val.vals['one_hot_max_size'],
+        'min_data_in_leaf' : trial_val.vals['min_data_in_leaf'],
+        'results': results
+                   })
+
+print(df)
+
+
+min_row = df.loc[df['results'] == df['results'].min()]
+print("최소 행",'\n' , min_row)
+
+
+min_results = df.loc[df['results'] == df['results'].min(), 'results']
+print(min_results.values)  
