@@ -75,12 +75,12 @@ x = train_dataset.drop(['PM2.5'], axis = 1)
 print(x.shape, '\n', y.shape) 
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, shuffle= True, train_size= 0.75, random_state=337 
+    x, y, shuffle= True, train_size= 0.75, random_state=22
 )
 
 parameter =  {
     "n_estimators" : 100, # 디폴트 100 / 1 ~ inf / 정수
-    "learning_rate" : 0.55, # 디폴트 0.3 / 0 ~ 1 / eta
+    "learning_rate" : 0.3, # 디폴트 0.3 / 0 ~ 1 / eta
     "max_depth" : 10, # 디폴트 6 / 0 ~ inf / 정수
     # "gamma" : 1, # 디폴트 0 / 0 ~ inf 
     # "min_child_weight" : 1, # 디폴트 1 / 0 ~ inf 
@@ -92,7 +92,6 @@ parameter =  {
     # "reg_lambda":1, # 디폴트 1 / 0 ~ inf / L2 제곱 가중치 규제 / lambda
     # "random_state":3377, # 디폴트 1 / 0 ~ inf / L2 제곱 가중치 규제 / lambda
     # "verbose":0, 
-    "n_jobs" : -1
 }
 
 #2. 모델
@@ -102,9 +101,8 @@ model = XGBRegressor()
 model.set_params(
     **parameter,
     eval_metric='mae',
-    early_stopping_rounds=200,
+    early_stopping_rounds=50
 )
-
 start = time.time()
 model.fit(x_train, y_train,
           eval_set=[(x_train, y_train), (x_test, y_test)],
