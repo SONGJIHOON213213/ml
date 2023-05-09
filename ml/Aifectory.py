@@ -75,11 +75,11 @@ x = train_dataset.drop(['PM2.5'], axis = 1)
 print(x.shape, '\n', y.shape) 
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, shuffle= True, train_size= 0.75, random_state=22
+    x, y, shuffle= True, train_size= 0.75, random_state=24
 )
 
 parameter =  {
-    "n_estimators" : 100, # 디폴트 100 / 1 ~ inf / 정수
+    "n_estimators" : 1000, # 디폴트 100 / 1 ~ inf / 정수
     "learning_rate" : 0.3, # 디폴트 0.3 / 0 ~ 1 / eta
     "max_depth" : 10, # 디폴트 6 / 0 ~ inf / 정수
     # "gamma" : 1, # 디폴트 0 / 0 ~ inf 
@@ -92,9 +92,9 @@ parameter =  {
     # "reg_lambda":1, # 디폴트 1 / 0 ~ inf / L2 제곱 가중치 규제 / lambda
     # "random_state":3377, # 디폴트 1 / 0 ~ inf / L2 제곱 가중치 규제 / lambda
     # "verbose":0, 
+    "n_jobs" : -1
 }
 
-#2. 모델
 model = XGBRegressor()
 
 #3. 컴파일, 훈련
@@ -136,31 +136,3 @@ submission = pd.read_csv(path + 'answer_sample.csv',index_col= 0)
 submission['PM2.5'] = y_submit
 submission.to_csv(path_save + '05023.csv') 
 
-# 0.5
-# model_score : 0.2464278516170939
-# r2스코어 : 0.2464278516170939
-# mae : 0.043627799670188185 
-# 0.45
-# model_score : 0.24755988364298487
-# r2스코어 : 0.24755988364298487
-# mae : 0.043603445272735755
-
-# 0.495
-# model_score : 0.24667312745938474
-# r2스코어 : 0.24667312745938474
-# mae : 0.04361089787609153 
-
-# 0.499
-# model_score : 0.24673309444888447
-# r2스코어 : 0.24673309444888447
-# mae : 0.043628906372976034 
-
-# 0.51
-# model_score : 0.24760561185472219
-# r2스코어 : 0.24760561185472219
-# mae : 0.04360857915801468 
-
-# 0.55
-# model_score : 0.2478762701729771
-# r2스코어 : 0.2478762701729771
-# mae : 0.04360540319050041
