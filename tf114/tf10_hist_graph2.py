@@ -79,3 +79,4 @@ axs[2].set_ylabel('loss')
 
 plt.tight_layout()  # 서브플롯 간의 간격 조절
 plt.show()
+
