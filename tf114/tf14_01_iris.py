@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-
 from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_digits
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
