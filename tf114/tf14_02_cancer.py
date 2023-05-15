@@ -2,26 +2,20 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 
-from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_digits
+from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # 1 데이터
 tf.compat.v1.set_random_seed(1234)
 
-data_list = [load_iris,
-             load_breast_cancer,
-             load_wine,
-             load_digits]
+data_list = [load_breast_cancer]
 
 for d in range(len(data_list)):
     x, y = data_list[d](return_X_y = True)
-    # if d < 2:
-    #     x, y = data_list[d](return_X_y = True)
-    y = y.reshape(-1, 1) # (442, 1)
-    # else:
-    #     x, y = data_list[d]
-    #     y = y.values.reshape(-1, 1)
+
+    y = y.reshape(-1, 1)
+    
     x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, random_state = 1234, shuffle = True)
     n_features = x_train.shape[1]
     
@@ -58,6 +52,6 @@ for d in range(len(data_list)):
         y_predict = sess.run(hypothsis, feed_dict = {x_p : x_test})
         y_predict = np.argmax(y_predict, axis=1).reshape(-1, 1)
 
-        # 4 평가
+    # 4 평가
     acc = accuracy_score(y_test, y_predict)
     print(f'데이터 : {d}, r2_score : {acc}')
